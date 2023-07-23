@@ -7,12 +7,42 @@ import {
   FaPause,
   FaRotate,
 } from "react-icons/fa6";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function App() {
   const [breakTime, setBreakTime] = useState(5);
   const [sessionTime, setSessionTime] = useState(25);
-  const [totalTime, setTotalTime] = useState(5);
+  const [totalTime, setTotalTime] = useState([sessionTime, 0]);
+  const [isRunning, setIsRunning] = useState(false);
+
+  let totalSeconds = totalTime[0] * 60 + totalTime[1];
+
+  let formattedTime = () => {
+    let formatNumber = [totalTime[0].toString(), totalTime[1].toString()];
+    let minutes =
+      formatNumber[0].length === 1 ? "0" + formatNumber[0] : formatNumber[0];
+
+    let seconds =
+      formatNumber[1].length === 1 ? "0" + formatNumber[1] : formatNumber[1];
+    return minutes + ":" + seconds;
+  };
+
+  const runningChange = ()=> setIsRunning(!isRunning)
+
+  useEffect(() => {
+    formattedTime();
+  }, [breakTime, sessionTime]);
+
+
+  useEffect(() => {
+    let interval;
+    if (isRunning) {
+      interval = setInterval(() => {
+        totalSeconds--
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRunning]);
 
   const resetTimer = () => {
     setBreakTime(5);
@@ -33,10 +63,12 @@ function App() {
       case "session-decrement":
         newValue = sessionTime - 1;
         setSessionTime(newValue);
+        setTotalTime([newValue, totalTime[1]]);
         break;
       case "session-increment":
         newValue = sessionTime + 1;
         setSessionTime(newValue);
+        setTotalTime([newValue, totalTime[1]]);
         break;
       default:
         console.log("Boton equivocado");
@@ -58,6 +90,7 @@ function App() {
                   id="break-increment"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
+                  disabled={breakTime === 60}
                 >
                   <FaArrowUp />
                 </Button>
@@ -68,6 +101,7 @@ function App() {
                   id="break-decrement"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
+                  disabled={breakTime === 0}
                 >
                   <FaArrowDown />
                 </Button>
@@ -82,6 +116,7 @@ function App() {
                   id="session-increment"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
+                  disabled={sessionTime === 60}
                 >
                   <FaArrowUp />
                 </Button>
@@ -92,6 +127,7 @@ function App() {
                   id="session-decrement"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
+                  disabled={sessionTime === 0}
                 >
                   <FaArrowDown />
                 </Button>
@@ -101,13 +137,13 @@ function App() {
               <div className="timer my-3">
                 <h1 id="timer-label">Tiempo restante</h1>
                 <div id="time-left" className="fs-1">
-                  25:00
+                  {formattedTime()}
                 </div>
               </div>
             </Container>
           </aside>
           <aside className="w-100 d-flex flex-wrap justify-content-center">
-            <Button id="start_stop" className="button">
+            <Button onClick={runningChange} id="start_stop" className="button">
               <FaPlay />
               <FaPause />
             </Button>
@@ -116,7 +152,9 @@ function App() {
             </Button>
           </aside>
         </main>
-        <footer></footer>
+        <footer className="display-6 fs-5 mt-4">
+          Created and designed by Juan Eduardo Ross Barba
+        </footer>
       </Col>
     </Row>
   );
