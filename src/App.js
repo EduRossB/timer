@@ -11,42 +11,63 @@ import { useState, useEffect } from "react";
 
 function App() {
   const [breakTime, setBreakTime] = useState(5);
-  const [sessionTime, setSessionTime] = useState(25);
-  const [totalTime, setTotalTime] = useState([sessionTime, 0]);
+  const [totalBreakTime, setTotalBreakTime] = useState([breakTime, "00"]);
+  const [sessionTime, setSessionTime] = useState(0);
+  const [totalTime, setTotalTime] = useState([sessionTime, "03"]);
   const [isRunning, setIsRunning] = useState(false);
+  const [isBreak, setIsBreak] = useState(false);
 
-  let totalSeconds = totalTime[0] * 60 + totalTime[1];
+  let totalSeconds = parseInt(totalTime[0]) * 60 + parseInt(totalTime[1]);
+  let totalSecondsBreak = parseInt(totalBreakTime[0]) * 60 + parseInt(totalBreakTime[1]);
 
-  let formattedTime = () => {
-    let formatNumber = [totalTime[0].toString(), totalTime[1].toString()];
-    let minutes =
-      formatNumber[0].length === 1 ? "0" + formatNumber[0] : formatNumber[0];
-
-    let seconds =
-      formatNumber[1].length === 1 ? "0" + formatNumber[1] : formatNumber[1];
-    return minutes + ":" + seconds;
+  const formattedTime = (seconds) => {
+    let minutes = parseInt(seconds / 60);
+    console.log(minutes);
+    let restSeconds = parseInt(seconds % 60);
+    console.log(restSeconds);
+    let formattedMinutes = minutes.toString().padStart(2, "0");
+    let formattedSeconds = restSeconds.toString().padStart(2, "0");
+    if (!isBreak) {
+      setTotalTime([formattedMinutes, formattedSeconds]);
+    } else {
+      setTotalBreakTime([formattedMinutes, formattedSeconds]);
+    }
   };
 
-  const runningChange = ()=> setIsRunning(!isRunning)
-
-  useEffect(() => {
-    formattedTime();
-  }, [breakTime, sessionTime]);
-
+  const runningChange = () => setIsRunning(!isRunning);
 
   useEffect(() => {
     let interval;
-    if (isRunning) {
+    console.log(totalSeconds)
+    if (isRunning && !isBreak) {
+      if(totalSeconds !== 0){
+        interval = setInterval(() => {
+          totalSeconds--;
+          formattedTime(totalSeconds);
+          console.log('el numero no es 0');
+        }, 1000);
+      }
+      else{
+        setIsBreak(!isBreak)
+        console.log('el numero es 0')
+      }
+    } else if (isRunning && isBreak) {
       interval = setInterval(() => {
-        totalSeconds--
+        totalSecondsBreak--;
+        formattedTime(totalSecondsBreak);
+        console.log(totalSecondsBreak);
       }, 1000);
+      console.log('es break')
     }
     return () => clearInterval(interval);
-  }, [isRunning]);
+  }, [isRunning, sessionTime, breakTime, isBreak]);
 
   const resetTimer = () => {
     setBreakTime(5);
     setSessionTime(25);
+    setTotalTime(["25", "00"]);
+    setIsRunning(false)
+    setTotalBreakTime(['05', '00'])
   };
 
   const changeTime = (id) => {
@@ -137,7 +158,9 @@ function App() {
               <div className="timer my-3">
                 <h1 id="timer-label">Tiempo restante</h1>
                 <div id="time-left" className="fs-1">
-                  {formattedTime()}
+                  {isBreak
+                    ? totalBreakTime[0] + ":" + totalBreakTime[1]
+                    : totalTime[0] + ":" + totalTime[1]}
                 </div>
               </div>
             </Container>
