@@ -10,8 +10,8 @@ import {
 import { useState, useEffect, useRef } from "react";
 
 function App() {
-  const [breakTime, setBreakTime] = useState([0, 5]);
-  const [sessionTime, setSessionTime] = useState([0, 3]);
+  const [breakTime, setBreakTime] = useState([5, 0]);
+  const [sessionTime, setSessionTime] = useState([25, 0]);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
 
@@ -176,9 +176,9 @@ function App() {
           Created and designed by Juan Eduardo Ross Barba
         </footer>
         {secondsBreakTime === 0 || secondsSessionTime === 0 ? (
-          <audio src={require("../src/sound-bells.mp3")} autoPlay />
+          <audio id="beep" src={require("../src/sound-bells.mp3")} autoPlay />
         ) : (
-          <audio src={require("../src/sound-bells.mp3")} />
+          <audio id="beep" src={require("../src/sound-bells.mp3")} />
         )}
       </Col>
     </Row>
