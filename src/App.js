@@ -44,7 +44,7 @@ function App() {
       }
     }
     return () => clearInterval(interval);
-  }, [isRunning, isBreak]);
+  }, [isRunning, isBreak, secondsBreakTime, secondsSessionTime]);
 
   const formatTime = (seconds) => {
     let minutes = parseInt(seconds / 60);
