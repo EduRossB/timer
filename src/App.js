@@ -7,89 +7,80 @@ import {
   FaPause,
   FaRotate,
 } from "react-icons/fa6";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function App() {
-  const [breakTime, setBreakTime] = useState(5);
-  const [totalBreakTime, setTotalBreakTime] = useState([breakTime, "00"]);
-  const [sessionTime, setSessionTime] = useState(0);
-  const [totalTime, setTotalTime] = useState([sessionTime, "03"]);
+  const [breakTime, setBreakTime] = useState([0, 5]);
+  const [sessionTime, setSessionTime] = useState([0, 3]);
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
 
-  let totalSeconds = parseInt(totalTime[0]) * 60 + parseInt(totalTime[1]);
-  let totalSecondsBreak = parseInt(totalBreakTime[0]) * 60 + parseInt(totalBreakTime[1]);
-
-  const formattedTime = (seconds) => {
-    let minutes = parseInt(seconds / 60);
-    console.log(minutes);
-    let restSeconds = parseInt(seconds % 60);
-    console.log(restSeconds);
-    let formattedMinutes = minutes.toString().padStart(2, "0");
-    let formattedSeconds = restSeconds.toString().padStart(2, "0");
-    if (!isBreak) {
-      setTotalTime([formattedMinutes, formattedSeconds]);
-    } else {
-      setTotalBreakTime([formattedMinutes, formattedSeconds]);
-    }
-  };
-
-  const runningChange = () => setIsRunning(!isRunning);
+  let secondsBreakTime = parseInt(breakTime[0]) * 60 + parseInt(breakTime[1]);
+  let secondsSessionTime =
+    parseInt(sessionTime[0]) * 60 + parseInt(sessionTime[1]);
 
   useEffect(() => {
     let interval;
-    console.log(totalSeconds)
-    if (isRunning && !isBreak) {
-      if(totalSeconds !== 0){
+    if (isRunning) {
+      if (!isBreak) {
         interval = setInterval(() => {
-          totalSeconds--;
-          formattedTime(totalSeconds);
-          console.log('el numero no es 0');
+          --secondsSessionTime;
+          let formatTimeLocal = formatTime(secondsSessionTime);
+          setSessionTime([formatTimeLocal[0], formatTimeLocal[2]]);
+          if (secondsSessionTime === 0) {
+            setIsBreak(true);
+          }
+        }, 1000);
+      } else {
+        interval = setInterval(() => {
+          --secondsBreakTime;
+          console.log("bajo 1 segundo break");
+          let formatTimeLocal = formatTime(secondsBreakTime);
+          setBreakTime([formatTimeLocal[0], formatTimeLocal[2]]);
+          if (secondsBreakTime === 0) {
+            resetTimer();
+          }
         }, 1000);
       }
-      else{
-        setIsBreak(!isBreak)
-        console.log('el numero es 0')
-      }
-    } else if (isRunning && isBreak) {
-      interval = setInterval(() => {
-        totalSecondsBreak--;
-        formattedTime(totalSecondsBreak);
-        console.log(totalSecondsBreak);
-      }, 1000);
-      console.log('es break')
     }
     return () => clearInterval(interval);
-  }, [isRunning, sessionTime, breakTime, isBreak]);
+  }, [isRunning, isBreak]);
+
+  const formatTime = (seconds) => {
+    let minutes = parseInt(seconds / 60);
+    let restSeconds = parseInt(seconds % 60);
+    let formattedMinutes = minutes.toString().padStart(2, "0");
+    let formattedSeconds = restSeconds.toString().padStart(2, "0");
+    return [formattedMinutes, ":", formattedSeconds];
+  };
 
   const resetTimer = () => {
-    setBreakTime(5);
-    setSessionTime(25);
-    setTotalTime(["25", "00"]);
-    setIsRunning(false)
-    setTotalBreakTime(['05', '00'])
+    setBreakTime([5, 0]);
+    setSessionTime([25, 0]);
+    setIsBreak(false);
+    setIsRunning(false);
   };
+
+  const changeRunning = () => setIsRunning(!isRunning);
 
   const changeTime = (id) => {
     let newValue = 0;
     switch (id) {
       case "break-decrement":
-        newValue = breakTime - 1;
+        newValue = [breakTime[0] - 1, breakTime[1]];
         setBreakTime(newValue);
         break;
       case "break-increment":
-        newValue = breakTime + 1;
+        newValue = [breakTime[0] + 1, breakTime[1]];
         setBreakTime(newValue);
         break;
       case "session-decrement":
-        newValue = sessionTime - 1;
+        newValue = [sessionTime[0] - 1, sessionTime[1]];
         setSessionTime(newValue);
-        setTotalTime([newValue, totalTime[1]]);
         break;
       case "session-increment":
-        newValue = sessionTime + 1;
+        newValue = [sessionTime[0] + 1, sessionTime[1]];
         setSessionTime(newValue);
-        setTotalTime([newValue, totalTime[1]]);
         break;
       default:
         console.log("Boton equivocado");
@@ -111,18 +102,18 @@ function App() {
                   id="break-increment"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
-                  disabled={breakTime === 60}
+                  disabled={breakTime[0] === 60}
                 >
                   <FaArrowUp />
                 </Button>
                 <p id="break-length" className="length-control-elements fs-4">
-                  {breakTime}
+                  {useRef(breakTime[0]).current}
                 </p>
                 <Button
                   id="break-decrement"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
-                  disabled={breakTime === 0}
+                  disabled={breakTime[0] === 0}
                 >
                   <FaArrowDown />
                 </Button>
@@ -137,18 +128,18 @@ function App() {
                   id="session-increment"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
-                  disabled={sessionTime === 60}
+                  disabled={sessionTime[0] === 60}
                 >
                   <FaArrowUp />
                 </Button>
                 <p id="session-length" className="length-control-elements fs-4">
-                  {sessionTime}
+                  {useRef(sessionTime[0]).current}
                 </p>
                 <Button
                   id="session-decrement"
                   onClick={(e) => changeTime(e.currentTarget.id)}
                   className="length-control-elements button"
-                  disabled={sessionTime === 0}
+                  disabled={sessionTime[0] === 0}
                 >
                   <FaArrowDown />
                 </Button>
@@ -156,17 +147,23 @@ function App() {
             </article>
             <Container className="w-100 d-flex justify-content-center">
               <div className="timer my-3">
-                <h1 id="timer-label">Tiempo restante</h1>
+                <h1 id="timer-label">
+                  {!isBreak ? "Tiempo Restante" : "PAUSA! Descansa"}
+                </h1>
                 <div id="time-left" className="fs-1">
                   {isBreak
-                    ? totalBreakTime[0] + ":" + totalBreakTime[1]
-                    : totalTime[0] + ":" + totalTime[1]}
+                    ? formatTime(secondsBreakTime)[0] +
+                      formatTime(secondsBreakTime)[1] +
+                      formatTime(secondsBreakTime)[2]
+                    : formatTime(secondsSessionTime)[0] +
+                      formatTime(secondsSessionTime)[1] +
+                      formatTime(secondsSessionTime)[2]}
                 </div>
               </div>
             </Container>
           </aside>
           <aside className="w-100 d-flex flex-wrap justify-content-center">
-            <Button onClick={runningChange} id="start_stop" className="button">
+            <Button onClick={changeRunning} id="start_stop" className="button">
               <FaPlay />
               <FaPause />
             </Button>
@@ -178,6 +175,11 @@ function App() {
         <footer className="display-6 fs-5 mt-4">
           Created and designed by Juan Eduardo Ross Barba
         </footer>
+        {secondsBreakTime === 0 || secondsSessionTime === 0 ? (
+          <audio src={require("../src/sound-bells.mp3")} autoPlay />
+        ) : (
+          <audio src={require("../src/sound-bells.mp3")} />
+        )}
       </Col>
     </Row>
   );
